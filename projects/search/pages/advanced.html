@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Search</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../styles/advanced.css" />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a class="page-links" href="../index.html">Google Search</a>
+      </nav>
+    </header>
+    <main>
+      <form
+        action="https://www.google.com/search"
+        id="search-form"
+        autocomplete="off"
+      >
+        <table id="form-table" cellspacing=0>
+          <thead>
+            <th>
+              <h1>Advanced Search</h1>
+            </th>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Find pages with</td>
+            </tr>
+            <tr>
+              <td class="label-td">
+                <label for="as_q" class="as-label">All of these words:</label>
+              </td>
+              <td>
+                <input type="text" name="as_q" class="as-input" />
+              </td>
+            </tr>
+            <tr>
+              <td class="label-td">
+                <label for="as_epq" class="as-label"
+                  >This exact word or phrase:</label
+                >
+              </td>
+              <td>
+                <input type="text" name="as_epq" class="as-input" />
+              </td>
+            </tr>
+            <tr>
+              <td class="label-td">
+                <label for="as_eq" class="as-label">None of these words:</label>
+              </td>
+              <td>
+                <input type="text" name="as_eq" class="as-input" />
+              </td>
+            </tr>
+            <tr>
+              <td class="label-td">
+                <label for="as_eq" class="as-label">None of these words:</label>
+              </td>
+              <td>
+                <input type="text" name="as_eq" class="as-input" />
+              </td>
+            </tr>
+            <tr>
+              <td class="label-td">
+                <label for="as_sitesearch" class="as-label"
+                  >Site or domain:</label
+                >
+              </td>
+              <td>
+                <input type="text" name="as_sitesearch" class="as-input" />
+              </td>
+            </tr>
+          </tbody>
+
+          <tfoot>
+            <tr>
+              <td>
+                <input type="submit" value="Advanced Search" class="as-submit" />
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </form>
+    </main>
+  </body>
+</html>

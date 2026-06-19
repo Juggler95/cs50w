@@ -1,0 +1,56 @@
+* {
+  font-family: sans-serif;
+  font-weight: lighter;
+  margin: 0;
+  padding: 0;
+  outline: none;
+}
+
+nav {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  margin-right: 2rem;
+}
+nav .page-links {
+  text-decoration: none;
+  color: black;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+}
+nav .page-links:hover {
+  text-decoration: underline;
+}
+
+#form-table {
+  display: flex;
+  flex-direction: column;
+  margin-left: 2rem;
+  border-collapse: separate;
+  border-spacing: 0 1rem;
+  width: 30rem;
+}
+#form-table tbody tr .label-td {
+  width: 150px;
+}
+#form-table tbody tr .as-input {
+  margin-left: 2rem;
+  padding: 0.8rem;
+  padding-inline: 2rem;
+  border-radius: 0.25rem;
+  border: 1px solid black;
+}
+#form-table tfoot {
+  display: flex;
+  justify-content: flex-end;
+}
+#form-table tfoot tr .as-submit {
+  background-color: #A8C7FA;
+  border: none;
+  padding: 10px;
+  margin-right: 3rem;
+  border-radius: 1.25rem;
+}
+
+/*# sourceMappingURL=advanced.css.map */
