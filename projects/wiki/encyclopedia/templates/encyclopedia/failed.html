@@ -1,0 +1,16 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    Failed
+{% endblock %}
+
+{% block body %}
+    {% if type == "already exists" %}
+        <h2>Entry Named {{ title }} Already Exists</h2>
+    {% elif type == "missing entry" %}
+        <h2>Entry named {{ title }} does not exisit</h2>
+        <a href="{% url 'newPage' %}">Create new page</a>
+        <br>
+    {% endif %}
+        <a href="{% url 'index' %}">Home</a>
+{% endblock %}

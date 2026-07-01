@@ -22,7 +22,11 @@ def entry(request, title):
             "html": html
         })
     else:
-        return HttpResponse(f"<h1>404</h1> <br> <h2>No entry named {title} returned</h2>")
+        # return HttpResponse(f"<h1>404</h1> <br> <h2>No entry named {title} returned</h2>")
+        return render(request, "encyclopedia/failed.html", {
+            "type": "missing entry",
+            "title": title
+        })
 
 
 def search(request):
@@ -55,9 +59,11 @@ def newPage(request):
     if request.method == "POST":
         title = request.POST.get("title")
         content = request.POST.get("content")
-        for e in util.list_entries():
-            if e == title:
-                return HttpResponse(f"{title} already exists as a page")
+        if title in util.list_entries():
+            return render(request, "encyclopedia/failed.html", {
+                "type": "already exists",
+                "title": title
+            })
 
         util.save_entry(title, content)
         return redirect("entry", title=title)
