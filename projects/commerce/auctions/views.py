@@ -1,0 +1,154 @@
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django import forms
+from django.forms import ModelForm
+
+from .models import User, Listing, CATEGORIES, WatchList
+
+
+class ListingForm(forms.ModelForm):
+
+    class Meta:
+        model = Listing
+        fields = ('title', 'desc', 'starting_value', 'category', 'imageURL')
+        exclude = ('user',)
+
+    
+
+def index(request):
+    return render(request, "auctions/index.html", {
+        "listings": Listing.objects.all()
+    })
+
+
+def login_view(request):
+    if request.method == "POST":
+
+        # Attempt to sign user in
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+
+        # Check if authentication successful
+        if user is not None:
+            login(request, user)
+            return HttpResponseRedirect(reverse("index"))
+        else:
+            return render(request, "auctions/login.html", {
+                "message": "Invalid username and/or password."
+            })
+    else:
+        return render(request, "auctions/login.html")
+
+
+def logout_view(request):
+    logout(request)
+    return HttpResponseRedirect(reverse("index"))
+
+
+def register(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        email = request.POST["email"]
+
+        # Ensure password matches confirmation
+        password = request.POST["password"]
+        confirmation = request.POST["confirmation"]
+        if password != confirmation:
+            return render(request, "auctions/register.html", {
+                "message": "Passwords must match."
+            })
+
+        # Attempt to create new user
+        try:
+            user = User.objects.create_user(username, email, password)
+            user.save()
+        except IntegrityError:
+            return render(request, "auctions/register.html", {
+                "message": "Username already taken."
+            })
+        login(request, user)
+        return HttpResponseRedirect(reverse("index"))
+    else:
+        return render(request, "auctions/register.html")
+
+@login_required(login_url="login")
+def create_listing(request):
+    if request.method == "POST":
+        form = ListingForm(request.POST)
+        if request.user.is_authenticated:
+            if form.is_valid():
+                m = form.save(commit=False)
+                m.user = request.user
+                instance = form.save(commit = False)
+                instance.title = form.cleaned_data["title"]
+                instance.desc = form.cleaned_data["desc"]
+                instance.starting_value = form.cleaned_data["starting_value"]
+                form.save()
+                return redirect("index")
+    else:
+        form = ListingForm()
+        return render(request, "auctions/new.html", {"form": form},)
+
+def view_listing(request, title):
+    listing = Listing.objects.get(title = title)
+    watchlist = WatchList.objects.get(user = request.user)
+    category = listing.category
+
+
+    watchlist_titles = list()
+
+    for i in watchlist.listings.values_list("title"):
+        watchlist_titles.append(i[0])
+
+    return render(request, "auctions/listing.html", {
+        "listing": listing,
+        "user": request.user,
+        "category": category.title(),
+        "watchlist_titles": watchlist_titles 
+    })
+
+def categories(request):
+    categories = list()
+    for category in CATEGORIES:
+        categories.append(category[1])
+
+    return render(request, "auctions/categories.html", {
+        "categories": categories
+    })
+
+def category_view(request, title):
+    categories = Listing.objects.values_list('category')
+    listings = Listing.objects.filter(category__iexact = title)
+
+    return render(request, "auctions/category.html", {
+        "title": title,
+        "listings": listings
+    })
+
+def addToWatchlist(request):
+    if request.method == "POST":
+        listing_id = request.POST["listing_id"]
+        listing = Listing.objects.get(id=listing_id)
+        try:
+            watchlist = WatchList.objects.get(user=request.user)
+        except:
+            watchlist = WatchList.objects.create(user=request.user)
+
+        try:
+            watchlist.listings.get(id=listing_id)
+            watchlist.listings.remove(listing)
+        except:
+            watchlist.listings.add(listing)
+
+        return redirect("watchlist")
+
+def watchlist_view(request):
+    watchlist = WatchList.objects.get(user=request.user)
+    return render(request, "auctions/watchlist.html", {
+        "listings": watchlist.listings.all()
+    })
