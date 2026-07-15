@@ -1,7 +1,7 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Active Listings</h2>
+    <h2>{{title}}</h2>
 
     <div>
         {% for listing in listings %}
@@ -12,7 +12,7 @@
                     <p class="card-text">{{listing.desc}}</p>
                     <!-- <p class="card-subtitle">Category: {{listing.category}}</p> -->
                     <p class="card-subtitle">From: {{listing.user}}</p>
-                    <p class="card-subtitle">Current Bid: ${{listing.starting_value}}</p>
+                    <p class="card-subtitle">Current Bid: ${{listing.value}}</p>
                     <a href="{% url 'view_listing' title=listing.title %}" class="btn btn-primary">View</a>
                 </div>
             </div>

@@ -26,17 +26,16 @@ class Listing(models.Model):
     desc = models.CharField(max_length=1000, blank=False)
     imageURL = models.URLField(null=False)
     category = models.CharField(choices=CATEGORIES, default=CATEGORIES[0])
-    starting_value = models.PositiveIntegerField(null=False)
+    value = models.PositiveIntegerField(null=False)
 
 
     def __str__(self):
-        return f"{self.title}, Description: {self.desc}, Starting Bid: {self.starting_value}"
+        return f"{self.title}, Description: {self.desc}, Starting Bid: {self.value}"
 
 class Bid(models.Model):
-    # user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    # listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
-    # bid_amount = models.PositiveIntegerField(null=False)
-    pass
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="listing_bids", null=True)
+    current_bid = models.PositiveIntegerField(null=False)
 
 class WatchList(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
@@ -47,4 +46,3 @@ class WatchList(models.Model):
 
 class Comment(models.Model):
     pass
-

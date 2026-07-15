@@ -1,12 +1,18 @@
 {% extends "auctions/layout.html" %}
-
 {% block body %}
+
+    {% if message %}
+        <h4><strong>{{message}}</strong></h4>
+    {% endif %}
+
     <h2>{{listing.title}}</h2>
+
+
 
     <img src="{{listing.imageURL}}" alt="{{listing.title}}" style="width: 60rem;">
     <div>
         <p>Description: {{listing.desc}}</p>
-        <p>${{listing.starting_value}}</p>
+        <p>${{listing.value}}</p>
         <p>User: {{listing.user}}</p>
         <p>Category: {{category}}</p>
     </div>
@@ -22,11 +28,16 @@
                 <input type="submit" name="watchlist" value="Add to Watchlist">
             {% endif %}
         </form>
-        <form>
+    {% if topBidUser %}
+        <p>you currently have the top bid</p>
+    {% else %}
+        <form action="{% url 'bid'  %}" method="POST">
             {% csrf_token %}
             <label for="bid">Bid</label>
-            <input type="number" name="bid" placeholder="$0">
+            <input type="hidden" name="listing_id" value="{{listing.id}}">
+            <input type="number" name="bid_amount" placeholder="$0" min="{{ listing.value|add:1}}">
             <input type="submit" name="submit" value="Place Bid">
         </form>
+    {% endif %}
     {% endif %}
 {% endblock %}

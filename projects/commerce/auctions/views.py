@@ -7,21 +7,21 @@ from django.urls import reverse
 from django import forms
 from django.forms import ModelForm
 
-from .models import User, Listing, CATEGORIES, WatchList
+from .models import User, Listing, CATEGORIES, WatchList, Bid
 
 
 class ListingForm(forms.ModelForm):
 
     class Meta:
         model = Listing
-        fields = ('title', 'desc', 'starting_value', 'category', 'imageURL')
+        fields = ('title', 'desc', 'value', 'category', 'imageURL')
         exclude = ('user',)
 
-    
 
 def index(request):
     return render(request, "auctions/index.html", {
-        "listings": Listing.objects.all()
+        "listings": Listing.objects.all(),
+        "title": "Active Listings"
     })
 
 
@@ -87,7 +87,7 @@ def create_listing(request):
                 instance = form.save(commit = False)
                 instance.title = form.cleaned_data["title"]
                 instance.desc = form.cleaned_data["desc"]
-                instance.starting_value = form.cleaned_data["starting_value"]
+                instance.value = form.cleaned_data["starting_value"]
                 form.save()
                 return redirect("index")
     else:
@@ -96,20 +96,33 @@ def create_listing(request):
 
 def view_listing(request, title):
     listing = Listing.objects.get(title = title)
-    watchlist = WatchList.objects.get(user = request.user)
     category = listing.category
 
+    try:
+        watchlist = WatchList.objects.get(user = request.user)
+        watchlist_titles = list()
 
-    watchlist_titles = list()
+        for i in watchlist.listings.values_list("title"):
+            watchlist_titles.append(i[0])
+    except:
+        watchlist_titles = None
 
-    for i in watchlist.listings.values_list("title"):
-        watchlist_titles.append(i[0])
+    topBidUser = False
+    try:
+        bid = Bid.objects.get(user = request.user, listing = listing)
+        topBidUser = True
+        print("true")
+    except:
+        topBidUser = False
+        print("false")
+
 
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "user": request.user,
         "category": category.title(),
-        "watchlist_titles": watchlist_titles 
+        "watchlist_titles": watchlist_titles,
+        "topBidUser": topBidUser
     })
 
 def categories(request):
@@ -125,7 +138,7 @@ def category_view(request, title):
     categories = Listing.objects.values_list('category')
     listings = Listing.objects.filter(category__iexact = title)
 
-    return render(request, "auctions/category.html", {
+    return render(request, "auctions/index.html", {
         "title": title,
         "listings": listings
     })
@@ -149,6 +162,29 @@ def addToWatchlist(request):
 
 def watchlist_view(request):
     watchlist = WatchList.objects.get(user=request.user)
-    return render(request, "auctions/watchlist.html", {
-        "listings": watchlist.listings.all()
+    return render(request, "auctions/index.html", {
+        "listings": watchlist.listings.all(),
+        "title": "Watchlist"
+    })
+
+def bid(request):
+    if request.method == "POST":
+        listing_id = request.POST["listing_id"]
+        listing = Listing.objects.get(id=listing_id)
+        bid_amount = int(request.POST["bid_amount"])
+
+        if bid_amount > listing.value:
+            bid = Bid.objects.create(user=request.user, listing=listing, current_bid=bid_amount)
+            listing.value = bid_amount
+            listing.save()
+            return render(request, "auctions/listing.html", {
+                "listing": listing,
+                "message": "Updated Bid"
+            })
+        else:
+            return redirect("invalid_bid_amount", title=listing.title)
+
+def invalid_bid_amount(request, title):
+    return render(request, "auctions/invalid_bid_amount.html", {
+        "title": title,
     })
