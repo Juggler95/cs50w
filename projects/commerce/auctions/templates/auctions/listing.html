@@ -28,19 +28,19 @@
                 <input type="submit" name="watchlist" value="Add to Watchlist">
             {% endif %}
         </form>
-    {% if topBidUser %}
-        <p>you currently have the top bid</p>
-    {% else %}
+        {% if topBidUser %}
+            <p>you currently have the top bid</p>
+        {% else %}
 
-        <!-- Bidding -->
-        <form action="{% url 'bid'  %}" method="POST">
-            {% csrf_token %}
-            <label for="bid">Bid</label>
-            <input type="hidden" name="listing_id" value="{{listing.id}}">
-            <input type="number" name="bid_amount" placeholder="$0" min="{{ listing.value|add:1}}">
-            <input type="submit" name="submit" value="Place Bid">
-        </form>
-    {% endif %}
+            <!-- Bidding -->
+            <form action="{% url 'bid'  %}" method="POST">
+                {% csrf_token %}
+                <label for="bid">Bid</label>
+                <input type="hidden" name="listing_id" value="{{listing.id}}">
+                <input type="number" name="bid_amount" placeholder="$0" min="{{ listing.value|add:1}}">
+                <input type="submit" name="submit" value="Place Bid">
+            </form>
+        {% endif %}
     {% endif %}
    <!-- Comments  -->
     <form action="{% url 'comment' %}" method="POST">
@@ -51,10 +51,10 @@
         <input type="submit" value="Comment">
     </form>
 
-    <ul>
+    <ul style="margin-top: 1rem;">
         {% if comments != None %}
             {% for c in comments %}
-                <div>
+                <div class="alert alert-info">
                     <h5>User: {{c.user}}</h5>
                     <p>{{c.body}}</p>
                 </div>

@@ -87,7 +87,7 @@ def create_listing(request):
                 instance = form.save(commit = False)
                 instance.title = form.cleaned_data["title"]
                 instance.desc = form.cleaned_data["desc"]
-                instance.value = form.cleaned_data["starting_value"]
+                instance.value = form.cleaned_data["value"]
                 form.save()
                 return redirect("index")
     else:
