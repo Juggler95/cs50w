@@ -7,7 +7,7 @@ from django.urls import reverse
 from django import forms
 from django.forms import ModelForm
 
-from .models import User, Listing, CATEGORIES, WatchList, Bid
+from .models import User, Listing, CATEGORIES, WatchList, Bid, Comment
 
 
 class ListingForm(forms.ModelForm):
@@ -111,18 +111,23 @@ def view_listing(request, title):
     try:
         bid = Bid.objects.get(user = request.user, listing = listing)
         topBidUser = True
-        print("true")
     except:
         topBidUser = False
-        print("false")
 
+
+    try:
+        comments = list(Comment.objects.filter(listing = listing))
+        comments.reverse()
+    except:
+        comments = None
 
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "user": request.user,
         "category": category.title(),
         "watchlist_titles": watchlist_titles,
-        "topBidUser": topBidUser
+        "topBidUser": topBidUser, 
+        "comments": comments
     })
 
 def categories(request):
@@ -175,11 +180,12 @@ def bid(request):
 
         if bid_amount > listing.value:
             bid = Bid.objects.create(user=request.user, listing=listing, current_bid=bid_amount)
-            listing.value = bid_amount
+            listing.value = bid.current_bid
             listing.save()
             return render(request, "auctions/listing.html", {
                 "listing": listing,
-                "message": "Updated Bid"
+                "message": "Updated Bid",
+                "topBidUser": True
             })
         else:
             return redirect("invalid_bid_amount", title=listing.title)
@@ -188,3 +194,12 @@ def invalid_bid_amount(request, title):
     return render(request, "auctions/invalid_bid_amount.html", {
         "title": title,
     })
+
+def comment(request):
+    if request.method == "POST":
+        listing_id = request.POST["listing_id"]
+        listing = Listing.objects.get(id=listing_id)
+        body = request.POST["body"]
+
+        comment = Comment.objects.create(user=request.user, listing=listing, body=body)
+        return redirect("view_listing", title=listing.title)

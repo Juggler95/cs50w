@@ -45,4 +45,6 @@ class WatchList(models.Model):
         return f"User:{self.user}, listings:{self.listings}" 
 
 class Comment(models.Model):
-    pass
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="listing_comments", null=True)
+    body = models.TextField(blank=False)
