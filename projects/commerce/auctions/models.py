@@ -7,7 +7,7 @@ from django.db.models.functions.math import Random
 
 CATEGORIES = (
     ("DEFAULT", "Default"),
-    ("TECH", "Tech"),
+    ("ELECTRONICS", "Electronics"),
     ("SPORTS", "Sports"),
     ("FURNITURE", "Furniture"),
     ("FASHION", "Fashion"),
@@ -21,12 +21,15 @@ class User(AbstractUser):
 
 
 class Listing(models.Model):
+    statusChoices = (("OPEN", "Open"), ("CLOSED", "Closed"))
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     title = models.CharField(max_length=100, blank=False)
     desc = models.CharField(max_length=1000, blank=False)
-    imageURL = models.URLField(null=False)
+    imageURL = models.URLField(null=True, blank=True)
     category = models.CharField(choices=CATEGORIES, default=CATEGORIES[0])
     value = models.PositiveIntegerField(null=False)
+    status = models.CharField(choices=statusChoices, null=False, default=statusChoices[0])
+    topBidUser = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="topBidUser")
 
 
     def __str__(self):

@@ -17,48 +17,71 @@
         <p>Category: {{category}}</p>
     </div>
     {% if user == listing.user %}
-        <p>you made this listing</p>
+        {% if status != "closed" %}
+            <form action="{% url 'close' %}" method="POST" autocomplete=off>
+                {% csrf_token %}
+                <input type="hidden" name="listing_id" value="{{listing.id}}">
+                <button class="btn btn-danger"type="submit">Close Auction</button>
+            </form>
+        {% else %}
+            <h2>You have closed this auction</h2>
+        {% endif %}
     {% else %}
-        <form action="{% url 'addToWatchlist' %}" method="POST">
+        <form action="{% url 'addToWatchlist' %}" method="POST" autocomplete=off>
             {% csrf_token %}
             <input type="hidden" name="listing_id" value="{{listing.id}}">
             {% if listing.title in watchlist_titles %}
-                <input type="submit" name="watchlist" value="Remove From Watchlist">
+                <input class="btn btn-danger" type="submit" name="watchlist" value="Remove From Watchlist">
             {% else %}
-                <input type="submit" name="watchlist" value="Add to Watchlist">
+                <input class="btn btn-primary" type="submit" name="watchlist" value="Add to Watchlist">
             {% endif %}
         </form>
         {% if topBidUser %}
-            <p>you currently have the top bid</p>
+            {% if status == "closed" %}
+                <h2>You won the auction</h2>
+            {% else %}
+                <p>you currently have the top bid</p>
+            {% endif %}
         {% else %}
 
-            <!-- Bidding -->
-            <form action="{% url 'bid'  %}" method="POST">
-                {% csrf_token %}
-                <label for="bid">Bid</label>
-                <input type="hidden" name="listing_id" value="{{listing.id}}">
-                <input type="number" name="bid_amount" placeholder="$0" min="{{ listing.value|add:1}}">
-                <input type="submit" name="submit" value="Place Bid">
-            </form>
+            {% if status != "closed" %}
+                <!-- Bidding -->
+                <form action="{% url 'bid'  %}" method="POST" autocomplete=off>
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label" for="bid">Bid</label>
+                        <input type="hidden" name="listing_id" value="{{listing.id}}">
+                        <input class="form-control" type="number" name="bid_amount" placeholder="$0" min="{{ listing.value|add:1}}">
+                    </div>
+                    <input class="btn btn-success" type="submit" name="submit" value="Place Bid">
+                </form>
+            {% else %}
+<h2>This auction has ended</h2>
+            {% endif %}
         {% endif %}
     {% endif %}
    <!-- Comments  -->
-    <form action="{% url 'comment' %}" method="POST">
-        {% csrf_token %}
-        <label for="body"></label>
-        <input type="hidden" name="listing_id" value="{{listing.id}}">
-        <input type="textarea" name="body" placeholder="Comment">
-        <input type="submit" value="Comment">
-    </form>
-
-    <ul style="margin-top: 1rem;">
-        {% if comments != None %}
-            {% for c in comments %}
-                <div class="alert alert-info">
-                    <h5>User: {{c.user}}</h5>
-                    <p>{{c.body}}</p>
+    {% if status != "closed" %}
+        <form action="{% url 'comment' %}" method="POST" autocomplete=off>
+            {% csrf_token %}
+                <div class="mb-3" style="margin-top: 1rem;">
+                    <!-- <label for="body"></label> -->
+                    <input type="hidden" name="listing_id" value="{{listing.id}}">
+                    <input class="form-control" type="textarea" name="body" placeholder="Comment">
                 </div>
-            {% endfor %}
-        {% endif %}
-    </ul>
+                <input class="btn btn-success" type="submit" value="Comment">
+            </form>
+
+
+        <ul style="margin-top: 1rem; list-style-position:inside; padding-left: 0;">
+            {% if comments != None %}
+                {% for c in comments %}
+                    <div class="alert alert-info">
+                        <h5>User: {{c.user}}</h5>
+                        <p>{{c.body}}</p>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </ul>
+    {% endif %}
 {% endblock %}

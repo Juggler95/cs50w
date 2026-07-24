@@ -19,8 +19,15 @@ class ListingForm(forms.ModelForm):
 
 
 def index(request):
+    openListings = list()
+    for l in Listing.objects.all():
+        print(l.status.lower())
+        if l.status.lower() != "closed":
+            openListings.append(l)
+
+
     return render(request, "auctions/index.html", {
-        "listings": Listing.objects.all(),
+        "listings": openListings,
         "title": "Active Listings"
     })
 
@@ -88,6 +95,8 @@ def create_listing(request):
                 instance.title = form.cleaned_data["title"]
                 instance.desc = form.cleaned_data["desc"]
                 instance.value = form.cleaned_data["value"]
+                if form.cleaned_data["imageURL"] == None:
+                    instance.imageURL = "https://upload.wikimedia.org/wikipedia/commons/b/b1/Missing-image-232x150.png"
                 form.save()
                 return redirect("index")
     else:
@@ -107,12 +116,18 @@ def view_listing(request, title):
     except:
         watchlist_titles = None
 
+    # try:
+    #     bid = Bid.objects.get(user = request.user, listing = listing)
+    #     topBidUser = True
+    # except:
+    #     topBidUser = False
+
     topBidUser = False
     try:
-        bid = Bid.objects.get(user = request.user, listing = listing)
-        topBidUser = True
+        if request.user == listing.topBidUser:
+            topBidUser = True
     except:
-        topBidUser = False
+        pass
 
 
     try:
@@ -126,8 +141,9 @@ def view_listing(request, title):
         "user": request.user,
         "category": category.title(),
         "watchlist_titles": watchlist_titles,
-        "topBidUser": topBidUser, 
-        "comments": comments
+        "topBidUser": topBidUser,
+        "comments": comments,
+        "status": listing.status.lower()
     })
 
 def categories(request):
@@ -142,12 +158,17 @@ def categories(request):
 def category_view(request, title):
     categories = Listing.objects.values_list('category')
     listings = Listing.objects.filter(category__iexact = title)
+    openListings = list()
+    for l in listings:
+        if l.status.lower != "closed":
+            openListings.append(l)
 
     return render(request, "auctions/index.html", {
         "title": title,
-        "listings": listings
+        "listings": openListings
     })
 
+@login_required(login_url="login")
 def addToWatchlist(request):
     if request.method == "POST":
         listing_id = request.POST["listing_id"]
@@ -165,6 +186,7 @@ def addToWatchlist(request):
 
         return redirect("watchlist")
 
+@login_required(login_url="login")
 def watchlist_view(request):
     watchlist = WatchList.objects.get(user=request.user)
     return render(request, "auctions/index.html", {
@@ -172,6 +194,7 @@ def watchlist_view(request):
         "title": "Watchlist"
     })
 
+@login_required(login_url="login")
 def bid(request):
     if request.method == "POST":
         listing_id = request.POST["listing_id"]
@@ -181,20 +204,24 @@ def bid(request):
         if bid_amount > listing.value:
             bid = Bid.objects.create(user=request.user, listing=listing, current_bid=bid_amount)
             listing.value = bid.current_bid
+            listing.topBidUser = request.user
             listing.save()
-            return render(request, "auctions/listing.html", {
-                "listing": listing,
-                "message": "Updated Bid",
-                "topBidUser": True
-            })
+            return redirect("view_listing", title=listing.title)
+        #     return render(request, "auctions/listing.html", {
+        #         "listing": listing,
+        #         "message": "Updated Bid",
+        #         "topBidUser": True
+        #     })
         else:
             return redirect("invalid_bid_amount", title=listing.title)
 
+@login_required(login_url="login")
 def invalid_bid_amount(request, title):
     return render(request, "auctions/invalid_bid_amount.html", {
         "title": title,
     })
 
+@login_required(login_url="login")
 def comment(request):
     if request.method == "POST":
         listing_id = request.POST["listing_id"]
@@ -203,3 +230,14 @@ def comment(request):
 
         comment = Comment.objects.create(user=request.user, listing=listing, body=body)
         return redirect("view_listing", title=listing.title)
+
+@login_required(login_url="login")
+def close_auction_view(request):
+    if request.method == "POST":
+        listing_id = request.POST["listing_id"]
+        listing = Listing.objects.get(id=listing_id)
+        if request.user == listing.user:
+            print(listing.statusChoices[1][1])
+            listing.status = listing.statusChoices[1][1]
+            listing.save()
+            return redirect("index")
