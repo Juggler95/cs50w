@@ -29,7 +29,7 @@ class Listing(models.Model):
     category = models.CharField(choices=CATEGORIES, default=CATEGORIES[0])
     value = models.PositiveIntegerField(null=False)
     status = models.CharField(choices=statusChoices, null=False, default=statusChoices[0])
-    topBidUser = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="topBidUser")
+    topBidUser = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="topBidUser")
 
 
     def __str__(self):

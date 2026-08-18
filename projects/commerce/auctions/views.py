@@ -21,7 +21,6 @@ class ListingForm(forms.ModelForm):
 def index(request):
     openListings = list()
     for l in Listing.objects.all():
-        print(l.status.lower())
         if l.status.lower() != "closed":
             openListings.append(l)
 
@@ -116,12 +115,6 @@ def view_listing(request, title):
     except:
         watchlist_titles = None
 
-    # try:
-    #     bid = Bid.objects.get(user = request.user, listing = listing)
-    #     topBidUser = True
-    # except:
-    #     topBidUser = False
-
     topBidUser = False
     try:
         if request.user == listing.topBidUser:
@@ -158,9 +151,10 @@ def categories(request):
 def category_view(request, title):
     categories = Listing.objects.values_list('category')
     listings = Listing.objects.filter(category__iexact = title)
+
     openListings = list()
-    for l in listings:
-        if l.status.lower != "closed":
+    for l in listings: 
+        if l.status.lower() != "closed":
             openListings.append(l)
 
     return render(request, "auctions/index.html", {
@@ -188,7 +182,11 @@ def addToWatchlist(request):
 
 @login_required(login_url="login")
 def watchlist_view(request):
-    watchlist = WatchList.objects.get(user=request.user)
+    try:
+        watchlist = WatchList.objects.get(user=request.user)
+    except:
+        watchlist = WatchList.objects.create(user=request.user)
+
     return render(request, "auctions/index.html", {
         "listings": watchlist.listings.all(),
         "title": "Watchlist"
@@ -207,11 +205,6 @@ def bid(request):
             listing.topBidUser = request.user
             listing.save()
             return redirect("view_listing", title=listing.title)
-        #     return render(request, "auctions/listing.html", {
-        #         "listing": listing,
-        #         "message": "Updated Bid",
-        #         "topBidUser": True
-        #     })
         else:
             return redirect("invalid_bid_amount", title=listing.title)
 
@@ -237,7 +230,6 @@ def close_auction_view(request):
         listing_id = request.POST["listing_id"]
         listing = Listing.objects.get(id=listing_id)
         if request.user == listing.user:
-            print(listing.statusChoices[1][1])
             listing.status = listing.statusChoices[1][1]
             listing.save()
             return redirect("index")
